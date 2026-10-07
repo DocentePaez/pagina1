@@ -72,7 +72,7 @@
 
     <h1>🚜 Mantenimiento</h1>
 
-    <h3>Agregar máquina</h3 >
+    <h3>Agregar máquina</h3>
 
     <input type="text" id="nombre" placeholder="Nombre de la máquina">
 
@@ -94,9 +94,13 @@
 </div>
 
 <script>
+// 1. Cargamos las máquinas guardadas al iniciar la app. Si no hay ninguna, empezamos con un array vacío.
+let maquinas = JSON.parse(localStorage.getItem("agrofix_maquinas")) || [];
+
+// 2. Ejecutamos la función para mostrar las máquinas guardadas apenas cargue la página
+document.addEventListener("DOMContentLoaded", mostrarMaquinas);
 
 function agregarMaquina() {
-
     let nombre = document.getElementById("nombre").value;
     let tipo = document.getElementById("tipo").value;
     let horas = document.getElementById("horas").value;
@@ -106,25 +110,60 @@ function agregarMaquina() {
         return;
     }
 
-    let maquina = document.createElement("div");
+    // 3. Creamos un objeto para la nueva máquina con un ID único usando la fecha actual en milisegundos
+    let nuevaMaquina = {
+        id: Date.now(),
+        nombre: nombre,
+        tipo: tipo,
+        horas: horas
+    };
 
-    maquina.className = "maquina";
+    // 4. Agregamos el objeto al array global
+    maquinas.push(nuevaMaquina);
 
-    maquina.innerHTML = `
-        <strong>${nombre}</strong><br>
-        Tipo: ${tipo}<br>
-        Horas de uso: ${horas} h<br>
-        <button onclick="this.parentElement.remove()">
-            Eliminar
-        </button>
-    `;
+    // 5. Guardamos la lista actualizada en el localStorage del navegador
+    localStorage.setItem("agrofix_maquinas", JSON.stringify(maquinas));
 
-    document.getElementById("lista").appendChild(maquina);
+    // 6. Volvemos a dibujar la lista en pantalla y limpiamos el formulario
+    mostrarMaquinas();
 
     document.getElementById("nombre").value = "";
     document.getElementById("horas").value = "";
 }
 
+// 7. Nueva función encargada exclusivamente de dibujar las máquinas en el HTML
+function mostrarMaquinas() {
+    let listaContenedor = document.getElementById("lista");
+    listaContenedor.innerHTML = ""; // Limpiamos la pantalla antes de redibujar
+
+    maquinas.forEach(maquina => {
+        let divMaquina = document.createElement("div");
+        divMaquina.className = "maquina";
+        
+        // El botón eliminar ahora llama a la función eliminarMaquina usando el ID único
+        divMaquina.innerHTML = `
+            <strong>${maquina.nombre}</strong><br>
+            Tipo: ${maquina.tipo}<br>
+            Horas de uso: ${maquina.horas} h<br>
+            <button onclick="eliminarMaquina(${maquina.id})">
+                Eliminar
+            </button>
+        `;
+        listaContenedor.appendChild(divMaquina);
+    });
+}
+
+// 8. Nueva función para borrar la máquina de la memoria
+function eliminarMaquina(id) {
+    // Filtramos la lista para conservar todas las máquinas menos la que coincida con el ID seleccionado
+    maquinas = maquinas.filter(maquina => maquina.id !== id);
+
+    // Actualizamos el localStorage con la nueva lista filtrada
+    localStorage.setItem("agrofix_maquinas", JSON.stringify(maquinas));
+
+    // Volvemos a renderizar en pantalla
+    mostrarMaquinas();
+}
 </script>
 
 </body>
